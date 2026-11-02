@@ -2,6 +2,7 @@ mod activity;
 mod apps;
 mod bench;
 mod cleaner;
+mod features;
 mod gamemode;
 mod games;
 mod history;
@@ -15,6 +16,8 @@ mod startup;
 mod sys;
 mod tools;
 mod tweaks;
+mod update;
+mod winget;
 
 use serde::{Deserialize, Serialize};
 use tauri::Emitter;
@@ -121,6 +124,12 @@ fn open_reports_folder() -> Result<(), String> {
 #[tauri::command]
 async fn check_update() -> Result<shell::UpdateInfo, String> {
     shell::check_update().await
+}
+
+/// Baixa a versão nova, confere o hash e instala; o app fecha e reabre sozinho.
+#[tauri::command]
+async fn update_install(app: tauri::AppHandle) -> Result<String, String> {
+    update::install(app).await
 }
 
 // --------------------------------------------------------------------- ajustes
@@ -468,6 +477,52 @@ async fn apps_remove(package: String) -> Result<(), String> {
     blocking(move || logged(apps::remove(&package), "app", || format!("Aplicativo removido: {package}"))).await
 }
 
+// ---------------------------------------------- instalar programas (winget)
+
+#[tauri::command]
+async fn winget_list() -> Result<Vec<winget::Package>, String> {
+    blocking(winget::list).await
+}
+
+#[tauri::command]
+async fn winget_install(app: tauri::AppHandle, id: String) -> Result<(), String> {
+    blocking(move || {
+        logged(winget::install(&app, &id).map(|_| ()), "app", || format!("Programa instalado: {}", winget::name_of(&id)))
+    })
+    .await
+}
+
+#[tauri::command]
+async fn winget_upgrade(app: tauri::AppHandle, id: String) -> Result<(), String> {
+    blocking(move || {
+        logged(winget::upgrade(&app, &id).map(|_| ()), "app", || format!("Programa atualizado: {}", winget::name_of(&id)))
+    })
+    .await
+}
+
+#[tauri::command]
+async fn winget_upgrade_all(app: tauri::AppHandle) -> Result<(), String> {
+    blocking(move || logged(winget::upgrade_all(&app).map(|_| ()), "app", || "Programas atualizados pelo winget".to_string())).await
+}
+
+// ------------------------------------------------- recursos do Windows
+
+#[tauri::command]
+async fn features_list() -> Result<Vec<features::Feature>, String> {
+    blocking(features::list).await
+}
+
+/// Devolve true se o Windows pede reinício para concluir.
+#[tauri::command]
+async fn feature_set(id: String, enable: bool) -> Result<bool, String> {
+    blocking(move || {
+        logged(features::set(&id, enable), "system", || {
+            format!("Recurso do Windows {}: {}", if enable { "ativado" } else { "desativado" }, features::label_of(&id))
+        })
+    })
+    .await
+}
+
 // --------------------------------------------------- exportar e importar
 
 #[derive(Serialize, Deserialize)]
@@ -564,8 +619,16 @@ pub fn run() {
                 if settings::get().check_updates {
                     if let Ok(info) = shell::check_update().await {
                         if info.newer {
-                            shell::notify(&h, "Nexus Optimizer", &format!("Nova versão disponível: {}", info.latest));
                             let _ = h.emit("update", &info);
+                            // Instalação automática só fora de jogos: o app fecha e reabre sozinho.
+                            if settings::get().auto_update && !gamemode::status().active {
+                                shell::notify(&h, "Nexus Optimizer", &format!("Atualizando para {}…", info.latest));
+                                if let Err(e) = update::install(h.clone()).await {
+                                    activity::log("system", format!("Atualização automática falhou: {e}"));
+                                }
+                            } else {
+                                shell::notify(&h, "Nexus Optimizer", &format!("Nova versão disponível: {}", info.latest));
+                            }
                         }
                     }
                 }
@@ -574,7 +637,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             relaunch_admin, is_admin, app_version, autostart_get, autostart_set, settings_get, settings_set,
-            activity_list, activity_clear, open_target, open_report, open_reports_folder, check_update,
+            activity_list, activity_clear, open_target, open_report, open_reports_folder, check_update, update_install,
             list_tweaks, apply_tweak, revert_tweak,
             run_benchmark, bench_history, bench_delete, bench_clear, ab_verdict, bench_report,
             catalog_status, running_games, search_games, gamemode_get, gamemode_set, free_memory, cpu_count,
@@ -584,6 +647,7 @@ pub fn run() {
             usage, processes, kill_process, startup_list, startup_set, system_info,
             clean_categories, clean_scan, clean_run,
             maint_run, disk_scan, disk_scan_cancel, disk_roots, programs, uninstall_program, apps_list, apps_remove,
+            winget_list, winget_install, winget_upgrade, winget_upgrade_all, features_list, feature_set,
             config_export, config_import
         ])
         .run(tauri::generate_context!())

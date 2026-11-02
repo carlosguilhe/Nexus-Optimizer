@@ -49,8 +49,15 @@ A maioria dos otimizadores promete "FPS infinito" e "zero lag" sem provar nada. 
 
 ## Funcionalidades
 
-### Ajustes (36, em 9 categorias)
-Jogos · Energia · Entrada · Rede · Visual · Privacidade · Serviços · Sistema · Avançado. Todos com backup do valor original, nível de risco, aviso de **reiniciar** quando preciso e busca global (`Ctrl+K`). Inclui plano de energia próprio (*Nexus Performance*), otimizações de tela cheia, MSI Mode por dispositivo, serviços do Windows, privacidade e mais.
+### Ajustes (44, em 9 categorias)
+Jogos · Energia · Entrada · Rede · Visual · Privacidade · Serviços · Sistema · Avançado. Todos com backup do valor original, nível de risco, aviso de **reiniciar** quando preciso e busca global (`Ctrl+K`). Inclui plano de energia próprio (*Nexus Performance*), otimizações de tela cheia, MSI Mode por dispositivo, serviços do Windows, privacidade, **desativar Copilot e Recall**, **menu de contexto clássico**, extensões e arquivos ocultos visíveis, **hibernação** e mais.
+
+### Windows
+- **Atualização automática:** o Nexus baixa a nova versão das releases do GitHub, confere o hash e se atualiza com um clique (ou sozinho, se você ligar a opção).
+- **Instalar programas** pelo winget (Steam, Discord, OBS, drivers e bibliotecas para jogos etc.), de uma lista fechada, com progresso, e atualizar tudo de uma vez.
+- **Controle do Windows Update:** Padrão, Só segurança ou Manual, sem reinício automático e sem troca de drivers.
+- **Recursos do Windows** em um clique: .NET 3.5, DirectPlay, WSL, Sandbox, Hyper-V e outros.
+- **Painéis clássicos** na tela inicial: rede, energia, som, Gerenciador de Dispositivos, Serviços, Visualizador de Eventos e mais.
 
 ### Jogos
 - **Catálogo de ~10 mil jogos** (nome do processo e ícone) para detectar o que está aberto.

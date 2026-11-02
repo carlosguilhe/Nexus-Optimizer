@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { Power, Search, ShieldAlert } from "lucide-react";
@@ -68,7 +68,10 @@ function App() {
   const confirm = useConfirm();
   const { settings, loaded, update } = useSettings();
   const [tab, setTabState] = useState(savedTab);
-  const [tweaks, setTweaks] = useState<Tweak[]>([]);
+  const [allTweaks, setTweaks] = useState<Tweak[]>([]);
+  // Ajustes do Windows Update ficam fora das abas e da busca: têm cartão próprio em Manutenção.
+  const tweaks = useMemo(() => allTweaks.filter((x) => TABS.includes(x.category)), [allTweaks]);
+  const updateTweaks = useMemo(() => allTweaks.filter((x) => !TABS.includes(x.category)), [allTweaks]);
   const [admin, setAdmin] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [bulk, setBulk] = useState<Bulk | null>(null);
@@ -241,7 +244,7 @@ function App() {
   }
 
   async function revertAll() {
-    const applied = tweaks.filter((x) => x.applied && (!x.admin || admin));
+    const applied = allTweaks.filter((x) => x.applied && (!x.admin || admin));
     if (!applied.length) return;
     const ok = await confirm({
       title: t("Reverter todos os ajustes?"),
@@ -389,7 +392,7 @@ function App() {
               {tab === "Aplicativos" && <AppsTab />}
               {tab === "Inicialização" && <StartupTab admin={admin} />}
               {tab === "Processos" && <ProcessesTab />}
-              {tab === "Manutenção" && <MaintTab admin={admin} />}
+              {tab === "Manutenção" && <MaintTab admin={admin} updateTweaks={updateTweaks} refresh={refresh} />}
               {tab === "Configurações" && <SettingsTab />}
               {tab === "Ajuda" && <HelpTab />}
 

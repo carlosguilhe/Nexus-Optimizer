@@ -12,6 +12,7 @@ const FALLBACK: Settings = {
   clean_every_days: 0,
   last_clean: 0,
   check_updates: true,
+  auto_update: false,
   theme: "nexus",
   lang: "pt-BR",
   wizard_done: true, // até carregar de verdade, não mostra o assistente

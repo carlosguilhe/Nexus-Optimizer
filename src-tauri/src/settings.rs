@@ -40,6 +40,8 @@ pub struct Settings {
     pub clean_every_days: u32,
     pub last_clean: u64,
     pub check_updates: bool,
+    /// Instala sozinho a versão nova (fora de jogos). Desligado por padrão.
+    pub auto_update: bool,
     pub theme: String,
     pub lang: String,
     pub wizard_done: bool,
@@ -57,6 +59,7 @@ impl Default for Settings {
             clean_every_days: 0,
             last_clean: 0,
             check_updates: true,
+            auto_update: false,
             theme: "nexus".into(),
             lang: "pt-BR".into(),
             wizard_done: false,

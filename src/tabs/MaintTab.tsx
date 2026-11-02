@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { ArrowLeft, CircleCheck, CircleX, ExternalLink, FolderOpen, ScanSearch, Square } from "lucide-react";
-import { errText, fmtBytes } from "../types";
+import { errText, fmtBytes, Tweak } from "../types";
+import { FeaturesCard, WindowsUpdateCard } from "../components/WinSystem";
 import { useT } from "../i18n";
 import { BtnLabel, Loading, PageHeader, ProgressBar } from "../components/ui";
 import { useToast } from "../toast";
@@ -291,13 +292,15 @@ function Drivers() {
   );
 }
 
-export function MaintTab({ admin }: { admin: boolean }) {
+export function MaintTab({ admin, updateTweaks, refresh }: { admin: boolean; updateTweaks: Tweak[]; refresh: () => Promise<void> }) {
   const t = useT();
   return (
     <>
-      <PageHeader icon={tabIcon("Manutenção")} title={t("Manutenção")} desc={t("Saúde dos discos, reparo do Windows, espaço em disco e drivers.")} />
+      <PageHeader icon={tabIcon("Manutenção")} title={t("Manutenção")} desc={t("Saúde dos discos, reparo do Windows, atualizações, recursos, espaço em disco e drivers.")} />
       <DiskHealth />
       <WinCheck admin={admin} />
+      <WindowsUpdateCard tweaks={updateTweaks} admin={admin} refresh={refresh} />
+      <FeaturesCard admin={admin} />
       <DiskAnalyzer />
       <Drivers />
     </>

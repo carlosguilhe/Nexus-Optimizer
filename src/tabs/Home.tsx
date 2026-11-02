@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { errText, fmtBytes, Tweak } from "../types";
 import { UsageBars } from "../components/UsageBars";
+import { Panels } from "../components/Panels";
+import { UpdateNow } from "../components/UpdateNow";
 import { BtnLabel, Loading, PageHeader, Spinner } from "../components/ui";
 import { useToast } from "../toast";
 import { useT, T } from "../i18n";
@@ -195,9 +197,7 @@ export function Home({ tweaks, admin, busy, update, onApplySafe, onRevertAll, on
       {update && (
         <p className="banner">
           <Download size={16} /> {t("Nova versão disponível: {v}", { v: update.latest })}
-          <button className="ghost small" onClick={() => invoke("open_target", { key: "releases" })}>
-            {t("Baixar")}
-          </button>
+          <UpdateNow latest={update.latest} onError={(m) => toast(m)} />
         </p>
       )}
 
@@ -244,6 +244,8 @@ export function Home({ tweaks, admin, busy, update, onApplySafe, onRevertAll, on
           );
         })}
       </div>
+
+      <Panels />
 
       <section className="card">
         <h3>{t("Uso agora")}</h3>

@@ -7,6 +7,7 @@ import { useToast } from "../toast";
 import { useConfirm } from "../confirm";
 import { BtnLabel, Loading, PageHeader, ProgressBar } from "../components/ui";
 import { tabIcon } from "../icons";
+import { InstallPrograms } from "../components/Install";
 
 interface App {
   package: string;
@@ -129,8 +130,11 @@ export function AppsTab() {
       <PageHeader
         icon={tabIcon("Aplicativos")}
         title={t("Aplicativos")}
-        desc={t("Apps que o Windows e os fabricantes instalam e que quase ninguém usa. A lista é fechada: só aparecem aplicativos que são seguros remover. Qualquer um pode ser reinstalado pela Microsoft Store.")}
+        desc={t("Instale programas populares, remova apps que o Windows e os fabricantes instalam e que quase ninguém usa, e desinstale o que não precisa mais.")}
       />
+      <InstallPrograms />
+      <h3 className="section-title">{t("Apps pré-instalados")}</h3>
+      <p className="muted">{t("A lista é fechada: só aparecem aplicativos que são seguros remover. Qualquer um pode ser reinstalado pela Microsoft Store.")}</p>
       {err && <p className="error" onClick={() => setErr("")}>{err}</p>}
       {apps === null && <Loading text={t("Procurando aplicativos instalados…")} />}
       {busy && <ProgressBar label={t("Removendo aplicativo…")} />}

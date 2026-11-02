@@ -54,6 +54,7 @@ export interface Settings {
   clean_every_days: number;
   last_clean: number;
   check_updates: boolean;
+  auto_update: boolean;
   theme: string;
   lang: string;
   wizard_done: boolean;

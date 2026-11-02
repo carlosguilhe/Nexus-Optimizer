@@ -10,6 +10,7 @@ import { BtnLabel, Loading, PageHeader, Switch } from "../components/ui";
 import { useToast } from "../toast";
 import { useConfirm } from "../confirm";
 import { tabIcon } from "../icons";
+import { UpdateNow } from "../components/UpdateNow";
 
 
 interface Entry {
@@ -173,8 +174,14 @@ export function SettingsTab() {
         <Row title={t("Ponto de restauração automático")} desc={t("Cria um ponto de restauração antes de aplicar ajustes avançados (exige administrador).")}>
           <Switch checked={settings.auto_restore} onChange={(v) => update({ auto_restore: v })} />
         </Row>
-        <Row title={t("Verificar atualizações ao abrir")} desc={t("Consulta o GitHub; nada é instalado sem você.")}>
+        <Row title={t("Verificar atualizações ao abrir")} desc={t("Consulta o GitHub e avisa quando houver versão nova.")}>
           <Switch checked={settings.check_updates} onChange={(v) => update({ check_updates: v })} />
+        </Row>
+        <Row
+          title={t("Instalar atualizações automaticamente")}
+          desc={t("Quando houver versão nova, o Nexus baixa, confere o hash e instala sozinho, nunca durante um jogo. Precisa da verificação ao abrir.")}
+        >
+          <Switch checked={settings.auto_update} disabled={!settings.check_updates} onChange={(v) => update({ auto_update: v })} />
         </Row>
         <Row title={t("Limpeza automática")} desc={t("Remove temporários, relatórios de erro e miniaturas com mais de 24 horas.")}>
           <select value={settings.clean_every_days} onChange={(e) => update({ clean_every_days: Number(e.currentTarget.value) })}>
@@ -211,8 +218,9 @@ export function SettingsTab() {
           <button className="ghost" disabled={checking} onClick={checkNow}>
             <BtnLabel busy={checking}>{t("Verificar agora")}</BtnLabel>
           </button>
+          {upd?.newer && <UpdateNow latest={upd.latest} onError={setUpdErr} />}
           {upd?.newer && (
-            <button onClick={() => invoke("open_target", { key: "releases" })}>
+            <button className="ghost" onClick={() => invoke("open_target", { key: "releases" })}>
               <Download size={15} /> {t("Baixar")}
             </button>
           )}

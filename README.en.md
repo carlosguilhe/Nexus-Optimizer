@@ -31,7 +31,9 @@ Most optimizers promise "infinite FPS" and "zero lag" without proof. Nexus does 
 
 ## Features
 
-- **36 tweaks** in 9 categories, all with backup, risk level and revert. Global search (`Ctrl+K`).
+- **44 tweaks** in 9 categories, all with backup, risk level and revert. Global search (`Ctrl+K`). Includes turning off Copilot and Recall, the classic context menu, hidden files, hibernation and more.
+- **Self-update from GitHub releases:** downloads the new installer, verifies its SHA-256 and updates in one click (or automatically, if you enable it).
+- **Windows tools:** install popular programs through winget (closed list, with progress), **Windows Update control** (Default / Security only / Manual), one-click **Windows features** (.NET 3.5, DirectPlay, WSL, Sandbox, Hyper-V…) and shortcuts to classic panels (network, power, sound, Device Manager, Services…).
 - **Game catalog (~10k games)** and **automatic Game Mode**: when a game opens, its **own profile** is applied (priority, temporary tweaks, programs to close, CPU cores) and **everything is undone** when it closes.
 - **FPS benchmark** (average, 1% low, frametime) with charts, **history**, **guided A/B test** and HTML **reports**.
 - **Speed test** with a gauge, live **CPU/RAM/NVIDIA GPU monitor**.

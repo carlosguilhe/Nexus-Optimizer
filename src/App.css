@@ -2133,3 +2133,97 @@ button.faq-q:hover:not(:disabled) {
 .row.spread {
   flex-wrap: nowrap;
 }
+
+/* ---- Windows Update (modos) e instalação de programas ---- */
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+button.mode {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 14px;
+  text-align: left;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-weight: 400;
+}
+
+button.mode b {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+button.mode small {
+  color: var(--muted);
+}
+
+button.mode:hover:not(:disabled),
+button.mode.selected {
+  border-color: var(--red);
+  background: linear-gradient(135deg, var(--tint), var(--card));
+  box-shadow: 0 6px 22px color-mix(in srgb, var(--red) 20%, transparent);
+}
+
+.install-cat {
+  margin: 16px 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.install-progress {
+  margin: 10px 0;
+}
+
+.install-progress .progress-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tweaks li .info small {
+  display: block;
+  margin-top: 2px;
+}
+
+.drivers small .chip {
+  margin-left: 8px;
+}
+
+.banner {
+  flex-wrap: wrap;
+}
+
+.update-progress {
+  flex-basis: 100%;
+}
+
+.pkg-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.game-icon.pkg-icon {
+  box-sizing: border-box;
+  padding: 6px;
+  object-fit: contain;
+  background: #f4f4f6;
+}
+
+.game-icon.pkg-icon.fallback {
+  padding: 0;
+  background: linear-gradient(135deg, var(--tint), var(--inset));
+}

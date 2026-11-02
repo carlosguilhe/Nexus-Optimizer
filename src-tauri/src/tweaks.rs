@@ -53,6 +53,8 @@ enum Kind {
     Registry(&'static [RegEntry]),
     PowerUltimate,
     PowerNexus,
+    /// powercfg /hibernate off|on; o estado vem de HibernateEnabled.
+    Hibernate,
 }
 
 struct Def {
@@ -69,6 +71,9 @@ struct Def {
 const NVT: &str = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile";
 const CDM: &str = r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager";
 const GCS: &str = r"System\GameConfigStore";
+const EXPLORER_ADV: &str = r"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced";
+const WU_POLICY: &str = r"SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate";
+const POWER_CTRL: &str = r"SYSTEM\CurrentControlSet\Control\Power";
 
 // Regra: todo ajuste tem backup antes de aplicar e reversão. Evidência é descrita com honestidade;
 // o ganho real só vale depois de medir no benchmark.
@@ -493,6 +498,139 @@ const DEFS: &[Def] = &[
         reboot: false,
         kind: Kind::Registry(&[dw(CU, r"Software\Microsoft\Windows\CurrentVersion\PushNotifications", "ToastEnabled", 0)]),
     },
+    Def {
+        id: "hidden-files-visible",
+        category: "Sistema",
+        name: "Mostrar arquivos e pastas ocultos",
+        description: "O Explorador de Arquivos passa a listar itens ocultos (AppData, ProgramData etc.).",
+        risk: "seguro",
+        evidence: "Conveniência: facilita achar configurações e saves de jogos. Não muda desempenho.",
+        reboot: false,
+        kind: Kind::Registry(&[dw(CU, EXPLORER_ADV, "Hidden", 1)]),
+    },
+    Def {
+        id: "numlock-on",
+        category: "Sistema",
+        name: "Num Lock ligado ao entrar no Windows",
+        description: "O teclado numérico já começa ativo depois do login.",
+        risk: "seguro",
+        evidence: "Conveniência. Com a Inicialização Rápida ligada, pode precisar de um reinício completo para valer.",
+        reboot: true,
+        kind: Kind::Registry(&[sz(CU, r"Control Panel\Keyboard", "InitialKeyboardIndicators", "2")]),
+    },
+    Def {
+        id: "end-task-taskbar",
+        category: "Sistema",
+        name: "\"Finalizar tarefa\" no menu da barra de tarefas",
+        description: "Clique direito num app da barra de tarefas e feche-o à força, sem abrir o Gerenciador de Tarefas.",
+        risk: "seguro",
+        evidence: "Conveniência para fechar jogos e apps travados. Exige Windows 11 23H2 ou mais novo.",
+        reboot: false,
+        kind: Kind::Registry(&[dw(CU, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings", "TaskbarEndTask", 1)]),
+    },
+    Def {
+        id: "classic-context-menu",
+        category: "Sistema",
+        name: "Menu de contexto clássico (Windows 11)",
+        description: "Volta o menu do botão direito completo, sem ter de clicar em \"Mostrar mais opções\".",
+        risk: "seguro",
+        evidence: "Conveniência. Só tem efeito no Windows 11; reinicie o Explorador ou o PC para valer.",
+        reboot: true,
+        kind: Kind::Registry(&[sz(CU, r"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32", "", "")]),
+    },
+    Def {
+        id: "taskbar-clean",
+        category: "Sistema",
+        name: "Barra de tarefas limpa",
+        description: "Esconde o botão Visão de Tarefas e a caixa de busca da barra de tarefas.",
+        risk: "seguro",
+        evidence: "Visual: menos ícones. Sem efeito em FPS.",
+        reboot: false,
+        kind: Kind::Registry(&[
+            dw(CU, EXPLORER_ADV, "ShowTaskViewButton", 0),
+            dw(CU, r"Software\Microsoft\Windows\CurrentVersion\Search", "SearchboxTaskbarMode", 0),
+        ]),
+    },
+    Def {
+        id: "copilot-off",
+        category: "Privacidade",
+        name: "Desativar o Copilot",
+        description: "Desliga o Copilot do Windows e esconde o botão dele da barra de tarefas.",
+        risk: "seguro",
+        evidence: "Evita um processo a mais em segundo plano e dados enviados à nuvem. Sem efeito em FPS.",
+        reboot: true,
+        kind: Kind::Registry(&[
+            dw(CU, r"Software\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot", 1),
+            dw(CU, EXPLORER_ADV, "ShowCopilotButton", 0),
+        ]),
+    },
+    Def {
+        id: "recall-off",
+        category: "Privacidade",
+        name: "Desativar o Recall e a análise de IA",
+        description: "Impede o Windows de gravar capturas de tela periódicas e de analisar sua atividade com IA.",
+        risk: "seguro",
+        evidence: "Privacidade e disco: o Recall guarda muitos dados. Só existe em PCs Copilot+; nos outros não faz nada.",
+        reboot: true,
+        kind: Kind::Registry(&[
+            dw(LM, r"SOFTWARE\Policies\Microsoft\Windows\WindowsAI", "DisableAIDataAnalysis", 1),
+            dw(LM, r"SOFTWARE\Policies\Microsoft\Windows\WindowsAI", "AllowRecallEnablement", 0),
+        ]),
+    },
+    Def {
+        id: "hibernate-off",
+        category: "Energia",
+        name: "Desativar a hibernação",
+        description: "Apaga o arquivo hiberfil.sys (vários GB no SSD) e desliga a hibernação e a Inicialização Rápida.",
+        risk: "moderado",
+        evidence: "Libera espaço no disco (cerca de 40% da RAM). Em notebook você perde a hibernação; a suspensão continua.",
+        reboot: false,
+        kind: Kind::Hibernate,
+    },
+    // ---------- Atualizações (controladas pelo cartão do Windows Update na aba Manutenção) ----------
+    Def {
+        id: "wu-security-only",
+        category: "Atualizações",
+        name: "Windows Update: adiar atualizações de recursos",
+        description: "Recebe as correções de segurança normalmente e adia por 1 ano as atualizações grandes de versão.",
+        risk: "moderado",
+        evidence: "Menos mudanças surpresa (e bugs de versão nova) sem abrir mão da segurança.",
+        reboot: false,
+        kind: Kind::Registry(&[
+            dw(LM, WU_POLICY, "DeferFeatureUpdates", 1),
+            dw(LM, WU_POLICY, "DeferFeatureUpdatesPeriodInDays", 365),
+        ]),
+    },
+    Def {
+        id: "wu-pause",
+        category: "Atualizações",
+        name: "Windows Update: não instalar sozinho",
+        description: "O Windows deixa de baixar e instalar atualizações automaticamente. Você instala quando quiser.",
+        risk: "moderado",
+        evidence: "Evita reinício e download no meio da partida, mas deixa o PC sem correções até você atualizar.",
+        reboot: false,
+        kind: Kind::Registry(&[dw(LM, r"SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU", "NoAutoUpdate", 1)]),
+    },
+    Def {
+        id: "wu-no-auto-reboot",
+        category: "Atualizações",
+        name: "Windows Update: nunca reiniciar sozinho",
+        description: "Não reinicia o PC por conta de uma atualização enquanto houver alguém conectado.",
+        risk: "moderado",
+        evidence: "Evita perder partida ou trabalho com um reinício automático.",
+        reboot: false,
+        kind: Kind::Registry(&[dw(LM, r"SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU", "NoAutoRebootWithLoggedOnUsers", 1)]),
+    },
+    Def {
+        id: "wu-no-drivers",
+        category: "Atualizações",
+        name: "Windows Update: não trocar drivers",
+        description: "Impede o Windows Update de instalar drivers por cima dos que você escolheu.",
+        risk: "moderado",
+        evidence: "Evita o Windows trocar o driver de vídeo por uma versão mais antiga.",
+        reboot: false,
+        kind: Kind::Registry(&[dw(LM, WU_POLICY, "ExcludeWUDriversInQualityUpdate", 1)]),
+    },
     // ---------- Avançado ----------
     Def {
         id: "hvci-off",
@@ -531,6 +669,7 @@ struct SavedEntry {
 enum Saved {
     Reg(Vec<SavedEntry>),
     Power { original: String, created: String },
+    Hibernate,
 }
 
 type Backup = HashMap<String, Saved>;
@@ -646,7 +785,19 @@ fn find(id: &str) -> Result<&'static Def, String> {
 }
 
 fn needs_admin(def: &Def) -> bool {
-    matches!(&def.kind, Kind::Registry(es) if es.iter().any(|e| e.hive == Hive::Lm))
+    match &def.kind {
+        Kind::Registry(es) => es.iter().any(|e| e.hive == Hive::Lm),
+        Kind::Hibernate => true,
+        _ => false,
+    }
+}
+
+fn hibernate_enabled() -> bool {
+    root(Hive::Lm)
+        .open_subkey(POWER_CTRL)
+        .and_then(|k| k.get_value::<u32, _>("HibernateEnabled"))
+        .map(|v| v != 0)
+        .unwrap_or(false)
 }
 
 fn is_applied(def: &Def, backup: &Backup) -> bool {
@@ -655,6 +806,7 @@ fn is_applied(def: &Def, backup: &Backup) -> bool {
             let active: Vec<&RegEntry> = entries.iter().filter(|e| !skipped(e)).collect();
             !active.is_empty() && active.into_iter().all(entry_matches)
         }
+        Kind::Hibernate => !hibernate_enabled(),
         Kind::PowerUltimate | Kind::PowerNexus => match backup.get(def.id) {
             Some(Saved::Power { created, .. }) => powercfg(&["/getactivescheme"])
                 .ok()
@@ -711,6 +863,22 @@ fn write_entry(e: &RegEntry) -> Result<(), String> {
     .map_err(|er| format!("{}\\{}: {er}", e.path, e.name))
 }
 
+/// Chaves de CLSID criadas pelo ajuste (menu clássico) precisam sumir ao reverter: só o valor vazio não basta.
+/// delete_subkey recusa chaves com valores ou filhos, então nada alheio é apagado.
+fn prune_clsid(hive: Hive, path: &str) {
+    const BASE: &str = r"Software\Classes\CLSID\";
+    let mut cur = path.to_string();
+    while cur.len() > BASE.len() && cur.starts_with(BASE) {
+        if root(hive).delete_subkey(&cur).is_err() {
+            break;
+        }
+        match cur.rfind('\\') {
+            Some(i) => cur.truncate(i),
+            None => break,
+        }
+    }
+}
+
 fn restore(entries: &[SavedEntry]) -> Result<(), String> {
     for e in entries {
         match &e.orig {
@@ -718,6 +886,7 @@ fn restore(entries: &[SavedEntry]) -> Result<(), String> {
                 if let Ok(key) = root(e.hive).open_subkey_with_flags(&e.path, KEY_SET_VALUE) {
                     let _ = key.delete_value(&e.name);
                 }
+                prune_clsid(e.hive, &e.path);
             }
             SavedVal::Dword(v) => {
                 let (key, _) = root(e.hive).create_subkey(&e.path).map_err(|er| er.to_string())?;
@@ -789,6 +958,15 @@ pub fn apply(id: &str) -> Result<(), String> {
             }
             powercfg(&["/setactive", &created])?;
         }
+        Kind::Hibernate => {
+            backup.insert(id.into(), Saved::Hibernate);
+            save_backup(&backup)?;
+            if let Err(e) = powercfg(&["/hibernate", "off"]) {
+                backup.remove(id);
+                let _ = save_backup(&backup);
+                return Err(e);
+            }
+        }
         Kind::PowerUltimate => {
             let original = parse_guid(&powercfg(&["/getactivescheme"])?)
                 .ok_or("não consegui ler o plano de energia atual")?;
@@ -811,6 +989,9 @@ pub fn revert(id: &str) -> Result<(), String> {
     let saved = backup.get(id).cloned().ok_or("sem backup para este ajuste; nada a reverter")?;
     match saved {
         Saved::Reg(entries) => restore(&entries)?,
+        Saved::Hibernate => {
+            powercfg(&["/hibernate", "on"])?;
+        }
         Saved::Power { original, created } => {
             powercfg(&["/setactive", &original])?;
             let _ = powercfg(&["/delete", &created]);
@@ -853,6 +1034,22 @@ mod tests {
             Saved::Reg(v) => assert_eq!(v[0].hive, Hive::Cu),
             _ => panic!(),
         }
+    }
+
+    // O menu clássico cria uma chave de CLSID: reverter tem de remover a chave inteira, não só o valor.
+    #[test]
+    fn classic_menu_revert_removes_clsid_key() {
+        isolate();
+        let id = "classic-context-menu";
+        if is_applied(find(id).unwrap(), &load_backup().unwrap()) {
+            eprintln!("{id} já ativo no sistema; teste pulado para não alterar seu estado");
+            return;
+        }
+        let guid = r"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}";
+        apply(id).unwrap();
+        assert!(root(CU).open_subkey(format!(r"{guid}\InprocServer32")).is_ok());
+        revert(id).unwrap();
+        assert!(root(CU).open_subkey(guid).is_err(), "a chave do CLSID deveria ter sumido");
     }
 
     // Aplica e reverte um ajuste HKCU real e confere que o estado original volta.
