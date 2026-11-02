@@ -1,0 +1,2 @@
+PresentMon (Intel, licença MIT) fica nesta pasta e é empacotado no instalador.
+Baixe com:  powershell -ExecutionPolicy Bypass -File scripts/get-presentmon.ps1

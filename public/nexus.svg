@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0" stop-color="#2a0a0e"/>
+      <stop offset="0.55" stop-color="#0d0507"/>
+      <stop offset="1" stop-color="#050505"/>
+    </radialGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff4a58"/>
+      <stop offset="0.55" stop-color="#e5202e"/>
+      <stop offset="1" stop-color="#8c0b16"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff3b4a"/>
+      <stop offset="1" stop-color="#4a0a10"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="22" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect x="32" y="32" width="960" height="960" rx="220" fill="url(#bg)"/>
+  <rect x="44" y="44" width="936" height="936" rx="208" fill="none" stroke="url(#rim)" stroke-width="10" opacity="0.9"/>
+  <!-- arco de velocímetro -->
+  <path d="M212 700 A340 340 0 1 1 812 700" fill="none" stroke="#e5202e" stroke-width="22" stroke-linecap="round" opacity="0.38"/>
+  <path d="M212 700 A340 340 0 0 1 380 232" fill="none" stroke="#ff3b4a" stroke-width="22" stroke-linecap="round" opacity="0.9"/>
+  <!-- N -->
+  <path filter="url(#glow)" fill="url(#red)" d="M300 754 V270 H400 L624 566 V270 H724 V754 H624 L400 458 V754 Z"/>
+</svg>
